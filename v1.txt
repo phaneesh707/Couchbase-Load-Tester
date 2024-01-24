@@ -1,0 +1,89 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"sync"
+	"time"
+	"github.com/google/uuid"
+	"github.com/couchbase/gocb/v2"
+)
+
+type doc struct {
+	Key1 string   `json:"key1"`
+	Key2 string   `json:"key2"`
+	Key3 string   `json:"key3"`
+}
+
+
+func main() {
+	// Uncomment following line to enable logging
+	// gocb.SetLogger(gocb.VerboseStdioLogger())
+
+	connectionString := "localhost"
+	bucketName := "test-bucket"
+	username := "admin"
+	password := "password"
+	
+	cluster, err := gocb.Connect("couchbase://"+connectionString, gocb.ClusterOptions{
+		Authenticator: gocb.PasswordAuthenticator{
+			Username: username,
+			Password: password,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	bucket := cluster.Bucket(bucketName)
+
+	err = bucket.WaitUntilReady(5*time.Second, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	col := bucket.Scope("_default").Collection("_default")
+
+	fmt.Println("Connection succesful!")
+    
+	// ----------------------------------------------------
+
+
+	docNumber := 5
+	var wg sync.WaitGroup
+
+    for i := 0 ; i < docNumber ; i++ {
+		id := uuid.New()
+		testKey := id.String()
+		wg.Add(1)
+		go insertDocumet(col,testKey,&wg)
+		
+	}
+
+	wg.Wait()
+	fmt.Println("--------------------Done-----------------")
+
+
+
+}
+
+
+func insertDocumet(col *gocb.Collection,testKey string,wg *sync.WaitGroup) {
+	
+	testDoc := doc{
+		Key1:"value1",
+		Key2:"value2",
+		Key3:"value3",
+	}
+
+	_, err := col.Upsert(testKey,testDoc, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer wg.Done()
+}
+
+
+
+
+

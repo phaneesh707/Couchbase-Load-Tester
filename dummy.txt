@@ -1,0 +1,174 @@
+// Get a reference to the default collection, required for older Couchbase server versions
+	// col := bucket.DefaultCollection()
+
+	col := bucket.Scope("tenant_agent_00").Collection("users")
+
+	type User struct {
+		Name      string   `json:"name"`
+		Email     string   `json:"email"`
+		Interests []string `json:"interests"`
+	}
+
+	// Create and store a Document
+	_, err = col.Upsert("u:jade",
+		User{
+			Name:      "Jade",
+			Email:     "jade@test-email.com",
+			Interests: []string{"Swimming", "Rowing"},
+		}, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the document back
+	getResult, err := col.Get("u:jade", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var inUser User
+	err = getResult.Content(&inUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("User: %v\n", inUser)
+
+	// Perform a N1QL Query
+	inventoryScope := bucket.Scope("inventory")
+	queryResult, err := inventoryScope.Query(
+		fmt.Sprintf("SELECT * FROM airline WHERE id=10"),
+		&gocb.QueryOptions{Adhoc: true},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Print each found Row
+	for queryResult.Next() {
+		var result interface{}
+		err := queryResult.Row(&result)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(result)
+	}
+
+    if err := queryResult.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+
+
+
+
+	data := map[string]interface{}{
+		"key0": {
+		  "Key00": "value0",
+		  "Key01": "value1",
+		  "Key02": "value2",
+		  "Key03": "value3",
+		  "Key04": "value4",
+		  "Key05": "value5",
+		  "Key06": "value6",
+		  "Key07": "value7",
+		  "Key08": "value8",
+		  "Key09": "value9"},
+		"key1": {
+		  "Key10": "value0",
+		  "Key11": "value1",
+		  "Key12": "value2",
+		  "Key13": "value3",
+		  "Key14": "value4",
+		  "Key15": "value5",
+		  "Key16": "value6",
+		  "Key17": "value7",
+		  "Key18": "value8",
+		  "Key19": "value9"},
+		"key2": {
+		  "Key20": "value0",
+		  "Key21": "value1",
+		  "Key22": "value2",
+		  "Key23": "value3",
+		  "Key24": "value4",
+		  "Key25": "value5",
+		  "Key26": "value6",
+		  "Key27": "value7",
+		  "Key28": "value8",
+		  "Key29": "value9"},
+		"key3": {
+		  "Key30": "value0",
+		  "Key31": "value1",
+		  "Key32": "value2",
+		  "Key33": "value3",
+		  "Key34": "value4",
+		  "Key35": "value5",
+		  "Key36": "value6",
+		  "Key37": "value7",
+		  "Key38": "value8",
+		  "Key39": "value9"},
+		"key4": {
+		  "Key40": "value0",
+		  "Key41": "value1",
+		  "Key42": "value2",
+		  "Key43": "value3",
+		  "Key44": "value4",
+		  "Key45": "value5",
+		  "Key46": "value6",
+		  "Key47": "value7",
+		  "Key48": "value8",
+		  "Key49": "value9"},
+		"key5": {
+		  "Key50": "value0",
+		  "Key51": "value1",
+		  "Key52": "value2",
+		  "Key53": "value3",
+		  "Key54": "value4",
+		  "Key55": "value5",
+		  "Key56": "value6",
+		  "Key57": "value7",
+		  "Key58": "value8",
+		  "Key59": "value9"},
+		"key6": {
+		  "Key60": "value0",
+		  "Key61": "value1",
+		  "Key62": "value2",
+		  "Key63": "value3",
+		  "Key64": "value4",
+		  "Key65": "value5",
+		  "Key66": "value6",
+		  "Key67": "value7",
+		  "Key68": "value8",
+		  "Key69": "value9"},
+		"key7": {
+		  "Key70": "value0",
+		  "Key71": "value1",
+		  "Key72": "value2",
+		  "Key73": "value3",
+		  "Key74": "value4",
+		  "Key75": "value5",
+		  "Key76": "value6",
+		  "Key77": "value7",
+		  "Key78": "value8",
+		  "Key79": "value9"},
+		"key8": {
+		  "Key80": "value0",
+		  "Key81": "value1",
+		  "Key82": "value2",
+		  "Key83": "value3",
+		  "Key84": "value4",
+		  "Key85": "value5",
+		  "Key86": "value6",
+		  "Key87": "value7",
+		  "Key88": "value8",
+		  "Key89": "value9"},
+		"key9": {
+		  "Key90": "value0",
+		  "Key91": "value1",
+		  "Key92": "value2",
+		  "Key93": "value3",
+		  "Key94": "value4",
+		  "Key95": "value5",
+		  "Key96": "value6",
+		  "Key97": "value7",
+		  "Key98": "value8",
+		  "Key99": "value9"}}
