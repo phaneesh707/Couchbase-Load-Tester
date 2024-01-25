@@ -6,7 +6,6 @@ import (
 	"os"
 	"runtime"
 	"time"
-
 	"github.com/couchbase/gocb/v2"
 	"github.com/google/uuid"
 )
@@ -17,6 +16,13 @@ func monitor(file *os.File){
 		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
 		message := fmt.Sprintf("[main] memory useage : Allocated = %v MB \tHeap Allocated : %v MB \n",memStats.Alloc / 1024 /1024,memStats.HeapAlloc / 1024 /1024)
+
+		memAllocated := memStats.Alloc / 1024 /1024
+		if memAllocated > 2048 {
+			fmt.Println("Memory usage is more than 2 GB , exiting progrma !")
+			os.Exit(1)
+		}
+
 		log.Printf(message)
 		_ ,err := file.WriteString(message)
 		if err != nil {
@@ -32,7 +38,7 @@ func main() {
 	// gocb.SetLogger(gocb.VerboseStdioLogger())
 
 	connectionString := "localhost"
-	bucketName := "test-bucket"
+	bucketName := "test"
 	username := "admin"
 	password := "password"
 	
@@ -64,15 +70,15 @@ func main() {
 	if err != nil {
 		fmt.Println("Error creting file")
 	}
-
 	defer file.Close()
 
 	// For monitoring purpose
 	waitC := make(chan bool)
+
 	go monitor(file)
 
 
-	totalWorker := 24
+	totalWorker := 96
 	wp := NewWorkerPool(totalWorker)
 	wp.Run()
 
@@ -83,6 +89,10 @@ func main() {
 
 	totalTask := 1000000
 	resultC := make(chan result, totalTask)
+
+	docKeyDelete := ""
+	docKeyUpdate := ""
+
 	for i := 0; i < totalTask; i++ {
 		id := uuid.New()
 		testKey := id.String()
@@ -91,6 +101,21 @@ func main() {
 			insertDocument(col,testKey)
 			resultC <- result{i, i * 2}
 		})
+
+		if i % 10 == 0  {
+			wp.AddTask(func() {
+				updateDocument(col,docKeyUpdate)
+			})
+			docKeyUpdate = testKey
+		}
+
+		if i % 100 == 0 {
+			wp.AddTask(func() {
+				deleteDocument(col,docKeyDelete)
+			})
+			docKeyDelete = testKey
+		}
+
 	}
 
 	for i := 0; i < totalTask; i++ {

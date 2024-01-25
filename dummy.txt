@@ -172,3 +172,9 @@
 		  "Key97": "value7",
 		  "Key98": "value8",
 		  "Key99": "value9"}}
+
+use secondary indexing - take meaningful data
+sepearte thread for queries 
+Compression
+Replicas
+hot data & cold data 
